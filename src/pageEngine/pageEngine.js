@@ -1,8 +1,6 @@
 const { readFileSync } = require('fs')
 const Vue = require('vue')
 const { createRenderer } = require('vue-server-renderer')
-const sass = require('node-sass')
-var tildeImporter = require('node-sass-tilde-importer')
 const { join: joinPath } = require('path')
 
 module.exports = class PageEngine {
@@ -12,10 +10,16 @@ module.exports = class PageEngine {
     this._renderer = createRenderer({
       template: readFileSync(joinPath(__dirname, './index.template.html'), 'utf-8')
     })
-    const pageStyle = sass.renderSync({
-      file: joinPath(__dirname, './style.scss'),
-      importer: tildeImporter
-    }).css
+    let pageStyle
+    try {
+      pageStyle = require('sass').renderSync({
+        file: joinPath(__dirname, './style.scss'),
+        includePaths: ['node_modules']
+      }).css
+    } catch (err) {
+      ctx.logger.warn('failed to compile style with Sass', err.message)
+      pageStyle = readFileSync(require.resolve('milligram'), 'utf-8')
+    }
 
     this._pageCtx = {pageTitle: 'trone', pageStyle}
 

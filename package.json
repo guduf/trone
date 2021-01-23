@@ -19,13 +19,14 @@
     "http-status-codes": "^2.1.4",
     "milligram": "^1.4.1",
     "morgan": "^1.10.0",
-    "node-sass": "^5.0.0",
-    "node-sass-tilde-importer": "^1.0.2",
     "vue": "^2.6.12",
     "vue-server-renderer": "^2.6.12",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
     "chokidar": "^3.5.1"
+  },
+  "optionalDependencies": {
+    "sass": "^1.32.5"
   }
 }
