@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+(process.argv.includes('-w') || process.argv.includes('--watch'))
+? require('../shared/watch')
+: require('../index')

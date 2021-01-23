@@ -2,28 +2,28 @@ const fse = require('fs-extra')
 
 const { parseCommand, resolvePath } = require('./shared/utils')
 
-let { srcDir, libDir, staticDir } = parseCommand()
+const cmd = parseCommand()
 
 const DEFAULT_SRC_DIR = resolvePath(__dirname, './src')
 
 let tmpDir = undefined
-if (!srcDir) {
-  srcDir = DEFAULT_SRC_DIR
-} else if (srcDir !== DEFAULT_SRC_DIR) {
+if (!cmd.paths.src) {
+  cmd.paths.src = DEFAULT_SRC_DIR
+} else if (cmd.paths.src !== DEFAULT_SRC_DIR) {
   tmpDir = resolvePath(__dirname, `./tmp/src-${Date.now()}-${process.pid}`)
   fse.copySync(DEFAULT_SRC_DIR, tmpDir)
-  fse.copySync(srcDir, tmpDir)
-  srcDir = tmpDir
+  fse.copySync(cmd.paths.src, tmpDir)
+  src = tmpDir
 }
 
-const createApp = require(resolvePath(srcDir, './createApp'))
-const createAppContext = require(resolvePath(srcDir, './createAppContext'))
-const bootstrap = require(resolvePath(srcDir, './bootstrap'))
+const createApp = require(resolvePath(cmd.paths.src, './createApp'))
+const createAppContext = require(resolvePath(cmd.paths.src, './createAppContext'))
+const bootstrap = require(resolvePath(cmd.paths.src, './bootstrap'))
 
 let appContext
 
 try {
-  appContext = createAppContext({appDir: __dirname, srcDir, libDir, staticDir})
+  appContext = createAppContext(cmd)
 } catch (err) {
   console.error(err)
   console.error('CreateAppContextFailure')

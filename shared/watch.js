@@ -3,7 +3,7 @@ const chokidar = require('chokidar')
 
 const { parseCommand, resolvePath } = require('./utils')
 
-let {src, lib, static} = parseCommand()
+let {paths: {src, lib, static}} = parseCommand()
 
 const watched = []
 let childArgs = [resolvePath(__dirname, '../index.js')]
