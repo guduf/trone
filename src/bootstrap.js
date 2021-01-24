@@ -7,6 +7,7 @@ const errorHandler = require('./errorHandler')
 const PageEngine = require('./pageEngine/pageEngine')
 
 module.exports = async function bootstrap(app) {
+  app.info('Bootstrap')
   app.get('/healthz', (req, res) => res.status(200).end())
 
   app.use('/robots.txt', (req, res, next) => {

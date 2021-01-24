@@ -1,12 +1,13 @@
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
-const { existsSync } = require('fs')
+const { existsSync, statSync } = require('fs')
 const { join: joinPath } = require('path')
-const { describe } = require('yargs')
 
 const resolvePath = (base, path) => (
   !path || path == 'null' ? null : /^\.{1,2}((\/|\\).*)?$/.test(path) ? joinPath(base, path) : path
 )
+
+const isDirectory = path => { try { return statSync(path).isDirectory() } catch { return false }}
 
 const parseCommand = () => {
   const argv = yargs(hideBin(process.argv))
@@ -27,15 +28,15 @@ const parseCommand = () => {
   if (!src && appDir && existsSync(resolveAppPath('./src/'))) {
     src = resolveAppPath('./src')
   }
-  let lib = argv.libDir ? resolvePath(cwd, argv.libDir) : null
-  if (!lib && appDir && existsSync(resolveAppPath('./lib/'))) {
+  let lib = argv.lib ? resolvePath(cwd, argv.lib) : null
+  if (!lib && appDir && isDirectory(resolveAppPath('./lib'))) {
     lib = resolvePath(appDir, './lib')
   }
-  let static = argv.staticDir ? resolvePath(cwd, argv.staticDir) : null
-  if (!static && appDir && existsSync(resolveAppPath('./static/'))) {
+  let static = argv.static ? resolvePath(cwd, argv.static) : null
+  if (!static && appDir && isDirectory(resolveAppPath('./static'))) {
     static = resolvePath(appDir, './static')
   }
   return {paths: {src, lib, static}, watch: argv.watch}
 }
 
-module.exports = {parseCommand, resolvePath}
+module.exports = {parseCommand, resolvePath, isDirectory}
