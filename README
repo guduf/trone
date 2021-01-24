@@ -1,0 +1,13 @@
+### Build Docker Images
+
+```
+docker build . --build-arg NODE_TAG=lts-alpine -t trone
+docker-slim build trone:latest --expose 8080 --http-probe=false --http-probe-cmd "/health" --tag trone:slim
+docker run --rm -p 8080:8080 --name trone trone:slim
+docker run --rm -it --pid=container:trone --net=container:trone --cap-add sys_admin --entrypoint bash node:lts-buster-slim
+```
+
+```
+docker build . --build-arg NODE_TAG=lts-alpine -t trone:alpine
+docker run --rm -p 8080:8080 --name trone-alpine trone:alpine
+```

@@ -1,85 +1,89 @@
-const fse = require('fs-extra')
+import fse from 'fs-extra'
 
-const { parseCommand, resolvePath } = require('./shared/utils')
-
-const cmd = parseCommand()
-
-const DEFAULT_SRC_DIR = resolvePath(__dirname, './src')
+import Command from './src/_command'
+import { resolvePath } from './src/_utils'
 
 let tmpDir = undefined
-if (!cmd.paths.src) {
-  cmd.paths.src = DEFAULT_SRC_DIR
-} else if (cmd.paths.src !== DEFAULT_SRC_DIR) {
+let app = undefined
+
+const command = Command()
+const DEFAULT_SRC_DIR = resolvePath(__dirname, './src')
+if (!command.paths.src) {
+  command.paths.src = DEFAULT_SRC_DIR
+} else if (command.paths.src !== DEFAULT_SRC_DIR) {
   tmpDir = resolvePath(__dirname, `./tmp/src-${Date.now()}-${process.pid}`)
   fse.copySync(DEFAULT_SRC_DIR, tmpDir)
-  fse.copySync(cmd.paths.src, tmpDir)
+  fse.copySync(command.paths.src, tmpDir)
   src = tmpDir
 }
-
-const createApp = require(resolvePath(cmd.paths.src, './createApp'))
-const createAppContext = require(resolvePath(cmd.paths.src, './createAppContext'))
-const bootstrap = require(resolvePath(cmd.paths.src, './bootstrap'))
-
-let appContext
-
-try {
-  appContext = createAppContext(cmd)
-} catch (err) {
-  console.error(err)
-  console.error('CreateAppContextFailure')
-  process.exit(1)
+if (command.verbose) {
+  console.log(`command:`, command)
 }
 
-let app
-try {
-  app = createApp(appContext)
-} catch (err) {
-  console.error(err)
-  console.error('CreateAppFailure')
-  process.exit(1)
-}
+const start = async () => {
 
-const exit = (msg, err) => {
-  if (tmpDir) {
-    try {
-      fse.removeSync(tmpDir)
-    } catch (err) {
-      console.error(err)
+  const callSrc = async (path, ...args) => {
+    if (command.verbose) {
+      console.log(`import source module '${path}'`)
+    }
+    const mod = await import(resolvePath(command.paths.src, `./${path}`))
+    return await mod.default(...args)
+  }
+
+  const conf = await callSrc('conf')
+  if (command.verbose) {
+    console.log(`conf:`, conf)
+  }
+  const logger = await callSrc('logger', {command, conf})
+  app = await callSrc('app', {command, conf, log: logger})
+  await callSrc('domEngine', app)
+  await callSrc('pre.mw', app)
+
+  const {paths} = app.command
+
+  if (paths.lib) {
+    const mvFiles = glob.sync(`${paths.lib}/**/*.mv.js`)
+    if (!mvFiles.length) {
+      app.warn('no middlewares')
+    }
+    for (const mwFile of mvFiles) {
+      app.info(`load middleware '${mwFile}'`)
+      try {
+        await (await import(mwFile))(app)
+      } catch (err) {
+        app.error(err)
+      }
     }
   }
-  try {
-    app.stop()
-  } catch (err) {
+
+  if (paths.static) {
+    app.use(express.static(paths.static))
+  }
+
+  await callSrc('post.mw', app)
+
+  await app.start()
+}
+
+let exited = false
+
+const exit = (msg, err) => {
+  if (exited) {
+    if (err) { console.error(err) }
+    return
+  }
+  exited = true
+  if (tmpDir) try { fse.removeSync(tmpDir) } catch (err) { console.error(err) }
+  if (app) try { app.stop() } catch (err) {
     exit('StopAppError', err)
     return
   }
   setTimeout(() => {
-    if (err) {
-      console.error(err)
-      console.error(msg)
-    } else {
-      console.log(msg)
-    }
+    if (err) { console.error(err, '\n', msg) } else if (command.verbose) { console.log(msg) }
     process.exit(err ? 0 : 1)
   })
 }
 
-bootstrap(app).catch(err => {
-  try {
-    app.stop()
-  } catch (err) {
-    setTimeout(() => {
-      console.error(err)
-      console.error('StopAppError')
-    })
-  }
-  exit('BootstrapError', err)
-})
-
-if (process.connected) {
-  process.on('disconnect', () => exit('Disconnected'))
-  process.on('SIGINT', () => { return })
-} else {
-  process.on('SIGINT', () => exit('Interupted'))
-}
-
+start().catch(err => exit('Fatal', err))
+process.on('disconnect', () => exit('Disconnected'))
+process.on('SIGINT', () => exit('Interupted'))

@@ -1,5 +1,11 @@
-module.exports = class Logger {
-  constructor()  {}
+import { command } from "yargs"
+
+class Logger {
+  constructor({command}) {
+    if (!command.verbose) {
+      this.verbose = () => {}
+    }
+  }
 
   info(...args) {
     console.log('INFO ', ...args)
@@ -12,4 +18,10 @@ module.exports = class Logger {
   error(...args) {
     console.error('ERROR ', ...args)
   }
+
+  verbose(...args) {
+      console.error(...args)
+  }
 }
+
+export default (...args) => new Logger(...args)

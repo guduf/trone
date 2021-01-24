@@ -1,27 +1,26 @@
-const { spawn } = require('child_process')
-const chokidar = require('chokidar')
+import { spawn } from 'child_process'
+import chokidar from 'chokidar'
+import { hideBin } from 'yargs/helpers'
 
-const { parseCommand, resolvePath } = require('./utils')
+import Command from './src/_command'
+import { resolvePath, joinPath } from './src/_utils'
 
-let {paths: {src, lib, static}} = parseCommand()
+let {paths: {src, lib, static: _static}} = Command()
 
 const watched = []
-let childArgs = [resolvePath(__dirname, '../index.js')]
 
 if (src) {
   const srcDir = resolvePath(process.cwd(), src)
   watched.push(srcDir)
-  childArgs.push('--src', srcDir)
 }
 
 if (lib) {
   const libDir = resolvePath(process.cwd(), lib)
   watched.push(libDir)
-  childArgs.push('--lib', libDir)
 }
 
-if (static) {
-  childArgs.push('--static', resolvePath(process.cwd(), static))
+if (_static) {
+  childArgs.push('--static', resolvePath(process.cwd(), _static))
 }
 
 if (!watched.length) {
@@ -32,11 +31,15 @@ if (!watched.length) {
 let childProcess = null
 let scheduledRestart = null
 
+let started = false
 const restartChildProcess = async () => {
   await exitChildProcess()
   try {
-    console.log('Restart')
-    childProcess = spawn('node', childArgs, {stdio: ['ipc', 'inherit', 'inherit']})
+    console.log(`Client${started ? 'Res' : 'S'}tart`)
+    started = true
+    childProcess = spawn(joinPath(__dirname, './bin/trone'), hideBin(process.argv), {
+      stdio: ['ipc', 'inherit', 'inherit']
+    })
   } catch (err) {
     exit('SpawnError', err)
   }
@@ -56,11 +59,7 @@ const exitChildProcess = () => {
   }
   return new Promise(resolve => {
     childProcess.on('exit', resolve)
-    if (childProcess.connected) {
-      childProcess.disconnect()
-    } else {
-      childProcess.kill('SIGINT')
-    }
+    childProcess.kill('SIGINT')
   })
 }
 
@@ -69,7 +68,7 @@ const exit = async (msg, err) => {
     await exitChildProcess()
   } catch (err) {
     console.error(err)
-    console.error('ExitError')
+    console.error('ChildExitError')
   }
   if (err) {
     console.error(err)
@@ -80,4 +79,4 @@ const exit = async (msg, err) => {
   process.exit(err ? 1 : 0)
 }
 
-process.on('SIGINT', () => exit('Interupted'))
+process.on('SIGINT', () => exit('WatchInterupted'))

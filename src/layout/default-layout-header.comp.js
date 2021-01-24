@@ -6,7 +6,7 @@ const template = `
   </header>
 `
 
-module.exports = {
+export default {
   template,
   props: ['title']
 }

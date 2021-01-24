@@ -1,4 +1,5 @@
-FROM node:lts-buster-slim
+ARG  NODE_TAG=lts
+FROM node:${NODE_TAG}
 WORKDIR /opt/trone/
 COPY ./package*.json ./
 ENV NODE_ENV production
