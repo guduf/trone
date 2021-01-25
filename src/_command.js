@@ -9,7 +9,7 @@ export const parseCommand = () => {
       yargs.positional('app', {type: 'string', describe: 'Directory where to look for subdirectories and configuration\nDefault is current working directory'})
     ))
     .option('watch', {alias: ['w'], type: 'boolean', describe: 'If true, run trone in a child process reloaded at each file change'})
-    .option('config', {alias: 'c', type: 'string', describe: 'Configuration file to apply to process'})
+    .option('conf', {alias: 'c', type: 'string', describe: 'Configuration file to apply to process'})
     .option('static', {alias: 's', type: 'string', describe: 'Directory where content will be statically served'})
     .option('lib', {alias: 'l', type: 'string', describe: 'Directory where to look for files like middlewares or pages'})
     .option('overSrc', {alias: ['src'], type: 'string', describe: 'Directory that will overwrite original source files'})
@@ -20,9 +20,9 @@ export const parseCommand = () => {
   const cwd = process.cwd()
   const appDir = argv.app ? resolvePath(cwd, argv.app) : cwd
   const resolveAppPath = path => resolvePath(appDir || cwd, path)
-  let config = argv.config ? resolvePath(cwd, argv.overSrc) : ''
-  if (config != null && !config && isFile(resolveAppPath('./conf.yaml'))) {
-    config = resolveAppPath('./conf.yaml')
+  let conf = argv.conf ? resolvePath(cwd, argv.overSrc) : ''
+  if (conf != null && !conf && isFile(resolveAppPath('./conf.yaml'))) {
+    conf = resolveAppPath('./conf.yaml')
   }
   let src = argv.overSrc ? resolvePath(cwd, argv.overSrc) : ''
   if (src != null && !src && isDirectory(resolveAppPath('./src/'))) {
@@ -37,7 +37,7 @@ export const parseCommand = () => {
     _static = resolvePath(appDir, './static')
   }
   const {verbose, watch} = argv
-  return {paths: {config, src, lib, static: _static}, verbose, watch}
+  return {paths: {conf: conf, src, lib, static: _static}, verbose, watch}
 }
 
 export default parseCommand
