@@ -1,14 +1,14 @@
-import { readFile } from 'fs'
+import { readFile } from 'fs-extra'
 import Vue from 'vue'
 import { createRenderer } from 'vue-server-renderer'
-import { join as joinPath, dirname } from 'path'
+import { join as joinPath } from 'path'
 import glob from 'glob'
-import { promisify as p } from 'util'
 import deepmerge from 'deepmerge'
 
 class DomEngine {
   constructor(ctx) {
     this._ctx = ctx
+    const layoutConf =  ctx.conf.layout || {}
     this._defaultPage = {
       template: `
         <layout v-bind:layout="layout">
@@ -17,16 +17,11 @@ class DomEngine {
         </layout>
       `,
       data: {
-        layout: ctx.conf.layout || {},
-        title: null,
-        text: null
+        layout: layoutConf,
+        title: layoutConf.defaultTitle || '',
+        text: layoutConf.defaultText || ''
       }
     }
-  }
-
-  static _modPathReg = /^(import\s+(?:(?:(?:\w+)|(?:{[\S\s]*?}))\s+from\s+)?['"])((?!\.{1,2})\S+['"]\s*;?\s*)$/gm
-  static _replaceModuleImports(body) {
-    return body.replace(DomEngine._modPathReg, '$1/modules/$2')
   }
 
   _defaultComponents = []
@@ -43,7 +38,7 @@ class DomEngine {
         }
     }
     this._renderer = createRenderer({
-      template: await p(readFile)(joinPath(__dirname, './layout/index.template.html'), 'utf-8')
+      template: await readFile(joinPath(__dirname, './layout/index.template.html'), 'utf-8')
     })
     let pageStyle
     try {
@@ -55,14 +50,14 @@ class DomEngine {
       pageStyle = result.css
     } catch (err) {
       this._ctx.log.warn('failed to compile style with Sass', err.message)
-      pageStyle = await p(readFile)(require.resolve('milligram'), 'utf-8')
+      pageStyle = await readFile(require.resolve('milligram'), 'utf-8')
     }
     this._pageCtx = {pageTitle: 'trone', pageStyle}
   }
 
   _buildBrowserModule(root, comps) {
-    return DomEngine._replaceModuleImports(`
-import Vue from 'vue'
+    return `
+import Vue from '/esm/vue'
 ${comps.map(dcl => `
 Vue.component('${dcl.name}', ${JSON.stringify(dcl, null, 2)})`)}
 
@@ -70,7 +65,7 @@ new Vue({
   ...${JSON.stringify(root, null, 2)},
   el: 'body>*:first-child'
 })
-`)
+`
   }
 
   async _loadComponent(filepath) {
@@ -102,32 +97,6 @@ new Vue({
     }
   }
 
-  async renderScript(req, res, next) {
-    const path = req.params[0].replace(/\.js$/, '')
-    if (!path) {
-      res.setHeader('content-type', 'text/javascript')
-      res.send(this._browserModule)
-      return
-    }
-    let filepath
-    const {shim} = this._ctx.conf.browser
-    if (shim[path]) {
-      filepath = require.resolve(shim[path])
-    } else try {
-      const pkgPath = require.resolve(`${path}/package.json`)
-      const module = require(pkgPath).module
-      if (!module) {
-        throw new Error('module not found')
-      }
-      filepath = joinPath(dirname(pkgPath), module)
-    } catch (err) {
-      res.status(404)
-      next(err)
-      return
-    }
-    res.sendFile(filepath)
-  }
-
   async render(path = 'default', opts = {}) {
     let dcl
     if (path === 'default') {
@@ -151,7 +120,6 @@ new Vue({
 export default async app => {
   const domEngine = new DomEngine(app)
   await domEngine.init()
-  app.get('/modules/?*', (req, res, next) => domEngine.renderScript(req, res, next))
   app.use((req, res, next) => {
     res.renderPage = (arg1 = 'default', arg2 = {}, arg3 = {}) => {
       if (req.headers.accept && !req.headers.accept.includes('html')) {

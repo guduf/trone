@@ -38,6 +38,7 @@ const start = async () => {
   const logger = await callSrc('logger', {command, conf})
   app = await callSrc('app', {command, conf, log: logger})
   await callSrc('domEngine', app)
+  await callSrc('esm.mw', app)
   await callSrc('pre.mw', app)
 
   const {paths} = app.command
