@@ -1,5 +1,5 @@
 const template = `
-  <header class="app-layout-header">
+  <header class="layout-header">
     <div class="page-inner">
       <h1>{{ title }}</h1>
     </div>

@@ -8,9 +8,9 @@ import deepmerge from 'deepmerge'
 
 const DEFAULT_PAGE_DCL = {
   template: `
-    <default-layout v-bind:content="layoutContent">
+    <layout v-bind:content="layoutContent">
       <h2>{{ title }}</h2>
-    </default-layout>
+    </layout>
   `,
   data: {
     layoutContent: {},

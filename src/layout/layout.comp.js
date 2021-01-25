@@ -1,6 +1,6 @@
 const template = `
-  <main class="default-layout">
-    <default-layout-header v-bind:title="content.title" />
+  <main class="layout">
+    <layout-header v-bind:title="content.title" />
     <slot></slot>
   </main>
 `

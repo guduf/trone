@@ -37,9 +37,11 @@ const restartChildProcess = async () => {
   try {
     console.log(`Client${started ? 'Res' : 'S'}tart`)
     started = true
-    childProcess = spawn(joinPath(__dirname, './bin/trone'), hideBin(process.argv), {
-      stdio: ['ipc', 'inherit', 'inherit']
-    })
+    childProcess = spawn(
+      'node',
+      [joinPath(__dirname, './bin/trone'), ...hideBin(process.argv)],
+      {stdio: ['ipc', 'inherit', 'inherit']}
+    )
   } catch (err) {
     exit('SpawnError', err)
   }

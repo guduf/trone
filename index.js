@@ -44,14 +44,14 @@ const start = async () => {
   const {paths} = app.command
 
   if (paths.lib) {
-    const mvFiles = glob.sync(`${paths.lib}/**/*.mv.js`)
+    const mvFiles = glob.sync(`${paths.lib}/**/*.mw.js`)
     if (!mvFiles.length) {
       app.log.warn('no middlewares')
     }
     for (const mwFile of mvFiles) {
       app.log.info(`load middleware '${mwFile}'`)
       try {
-        await (await import(mwFile))(app)
+        await (await import(mwFile)).default(app)
       } catch (err) {
         app.log.error(err)
       }
