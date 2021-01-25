@@ -1,4 +1,6 @@
+import express from 'express'
 import fse from 'fs-extra'
+import glob from 'glob'
 
 import Command from './src/_command'
 import { resolvePath } from './src/_utils'
@@ -44,14 +46,14 @@ const start = async () => {
   if (paths.lib) {
     const mvFiles = glob.sync(`${paths.lib}/**/*.mv.js`)
     if (!mvFiles.length) {
-      app.warn('no middlewares')
+      app.log.warn('no middlewares')
     }
     for (const mwFile of mvFiles) {
-      app.info(`load middleware '${mwFile}'`)
+      app.log.info(`load middleware '${mwFile}'`)
       try {
         await (await import(mwFile))(app)
       } catch (err) {
-        app.error(err)
+        app.log.error(err)
       }
     }
   }
