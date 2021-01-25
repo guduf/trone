@@ -2,21 +2,13 @@ import { spawn } from 'child_process'
 import chokidar from 'chokidar'
 import { hideBin } from 'yargs/helpers'
 
-import { resolvePath, joinPath, parseCommand } from '../src'
+import { joinPath, parseCommand } from '../src'
 
-let {paths: {src, lib}} = parseCommand()
+let {paths} = parseCommand()
 
 const watched = []
 
-if (src) {
-  const srcDir = resolvePath(process.cwd(), src)
-  watched.push(srcDir)
-}
-
-if (lib) {
-  const libDir = resolvePath(process.cwd(), lib)
-  watched.push(libDir)
-}
+for (const path of Object.keys(paths)) if (path) { watched.push(path) }
 
 if (!watched.length) {
   console.error('no directory to watch')

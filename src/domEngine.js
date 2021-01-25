@@ -6,21 +6,22 @@ import glob from 'glob'
 import { promisify as p } from 'util'
 import deepmerge from 'deepmerge'
 
-const DEFAULT_PAGE_DCL = {
-  template: `
-    <layout v-bind:content="layoutContent">
-      <h2>{{ title }}</h2>
-    </layout>
-  `,
-  data: {
-    layoutContent: {},
-    title: 'Hello world !'
-  }
-}
-
-export class DomEngine {
+class DomEngine {
   constructor(ctx) {
     this._ctx = ctx
+    this._defaultPage = {
+      template: `
+        <layout v-bind:layout="layout">
+          <h2 v-if="title">{{ title }}</h2>
+          <p v-if="text">{{ text }}</p>
+        </layout>
+      `,
+      data: {
+        layout: ctx.conf.layout || {},
+        title: null,
+        text: null
+      }
+    }
   }
 
   static _modPathReg = /^(import\s+(?:(?:(?:\w+)|(?:{[\S\s]*?}))\s+from\s+)?['"])((?!\.{1,2})\S+['"]\s*;?\s*)$/gm
@@ -29,9 +30,18 @@ export class DomEngine {
   }
 
   _defaultComponents = []
+  _globs = {}
+  _pages = {}
 
   async init() {
-    await this._loadDefaultComponents()
+    await this._loadDefaultComponents(joinPath(__dirname, './layout/index.template.html'))
+    const {lib} = this._ctx.command.paths
+    if (lib) for (const path of glob.sync(joinPath(lib, '/**/*.comp.js'))) {
+        const match = path.match(/\/([a-z][a-z0-9-]*)\.comp\.js$/)
+        if (match) {
+            this._globs[match[1]] = path
+        }
+    }
     this._renderer = createRenderer({
       template: await p(readFile)(joinPath(__dirname, './layout/index.template.html'), 'utf-8')
     })
@@ -118,12 +128,15 @@ new Vue({
     res.sendFile(filepath)
   }
 
-  render(path = 'default', opts = {}) {
+  async render(path = 'default', opts = {}) {
     let dcl
     if (path === 'default') {
-      dcl = deepmerge(DEFAULT_PAGE_DCL, opts.data ? {data: opts.data} : {})
-    } else {
-      throw new Error(`not implemented`)
+      dcl = deepmerge(this._defaultPage, opts.data ? {data: opts.data} : {})
+    } else if (this._pages[path]) {
+       dcl = this._pages[path]
+    } else if (this._globs[path]) {
+        this._ctx.log.verbose(`import component '${path}' (${this._globs[path]})`)
+        dcl = this._pages[path] = (await import(this._globs[path])).default
     }
     this._ctx.log.verbose('render data:', dcl.data)
     const pageCtx = {
@@ -135,7 +148,7 @@ new Vue({
   }
 }
 
-export const engineMiddleware = async app => {
+export default async app => {
   const domEngine = new DomEngine(app)
   await domEngine.init()
   app.get('/modules/?*', (req, res, next) => domEngine.renderScript(req, res, next))
@@ -154,5 +167,3 @@ export const engineMiddleware = async app => {
   })
   return domEngine
 }
-
-export default engineMiddleware

@@ -1,13 +1,11 @@
 const template = `
   <main class="layout">
-    <layout-header v-bind:title="content.title" />
+    <layout-header v-bind:title="layout && layout.title" />
     <slot></slot>
   </main>
 `
 
-export const Layout = {
+export default {
   template,
-  props: ['content']
+  props: ['layout']
 }
-
-export default Layout

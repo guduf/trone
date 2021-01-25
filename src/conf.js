@@ -6,7 +6,7 @@ const {env} = process
 
 const DEFAULT_MODE = env['APP_ENV'] || env['NODE_ENV'] || 'production'
 
-const DEFAULT_CONFIG = {
+const DEFAULT_CONF = {
   mode: DEFAULT_MODE,
   isDev: DEFAULT_MODE === 'development',
   isProd: DEFAULT_MODE === 'production',
@@ -19,14 +19,14 @@ const DEFAULT_CONFIG = {
   }
 }
 
-export const configBuilder = (confPath, extraConf = {}) => {
+export const confBuilder = (confPath, extraConf = {}) => {
   let innerConf
   if (confPath) {
     innerConf = YAML.parse(readFileSync(confPath, 'utf-8'))
   } else {
     innerConf = {}
   }
-  return deepmerge(DEFAULT_CONFIG, innerConf, extraConf)
+  return deepmerge(DEFAULT_CONF, innerConf, extraConf)
 }
 
-export default configBuilder
+export default confBuilder

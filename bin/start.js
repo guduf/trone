@@ -31,7 +31,7 @@ const start = async () => {
     return await mod.default(...args)
   }
 
-  const conf = await callSrc('conf')
+  const conf = await callSrc('conf', command.paths.conf)
   if (command.verbose) {
     console.log(`conf:`, conf)
   }
