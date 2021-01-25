@@ -5,7 +5,9 @@ const template = `
   </main>
 `
 
-export default {
+export const Layout = {
   template,
   props: ['content']
 }
+
+export default Layout

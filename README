@@ -9,6 +9,7 @@ docker run --rm -it --pid=container:trone --net=container:trone --cap-add sys_ad
 
 ```
 docker build . --build-arg NODE_TAG=lts-alpine -t guduf/trone:alpine
-docker run --rm -p 8080:8080 --name trone-alpine guduf/trone:alpine
+docker run --rm -it -p 8080:8080 --name trone-alpine guduf/trone:alpine
+docker run -d -p 8888:8080 -v "$(pwd)/src:/mnt/src" --name trone-watch guduf/trone:alpine -vw /mnt
 docker push guduf/trone:alpine
 ```

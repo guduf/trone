@@ -5,6 +5,7 @@ import deepmerge from 'deepmerge'
 const {env} = process
 
 const DEFAULT_MODE = env['APP_ENV'] || env['NODE_ENV'] || 'production'
+
 const DEFAULT_CONFIG = {
   mode: DEFAULT_MODE,
   isDev: DEFAULT_MODE === 'development',
@@ -18,7 +19,7 @@ const DEFAULT_CONFIG = {
   }
 }
 
-export default (confPath, extraConf = {}) => {
+export const configBuilder = (confPath, extraConf = {}) => {
   let innerConf
   if (confPath) {
     innerConf = YAML.parse(readFileSync(confPath, 'utf-8'))
@@ -27,3 +28,5 @@ export default (confPath, extraConf = {}) => {
   }
   return deepmerge(DEFAULT_CONFIG, innerConf, extraConf)
 }
+
+export default configBuilder

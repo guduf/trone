@@ -1,6 +1,6 @@
 import { getReasonPhrase } from 'http-status-codes'
 
-export default app => {
+export const postMiddleware = app => {
   const defaultHander = (req, res, data = {}) => {
     data = {...data}
     const {accept} = req.headers
@@ -39,3 +39,5 @@ export default app => {
     })
   })
 }
+
+export default postMiddleware

@@ -1,4 +1,4 @@
-export default app => {
+export const preMiddleware = app => {
   app.get('/healthz?', (req, res) => res.renderPage({data: {title: 'Health Probe'}}))
 
   app.use('/robots.txt', (req, res) => {
@@ -6,3 +6,5 @@ export default app => {
     res.send('User-agent: *\nDisallow: /')
   })
 }
+
+export default preMiddleware

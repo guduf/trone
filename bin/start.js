@@ -2,21 +2,20 @@ import express from 'express'
 import fse from 'fs-extra'
 import glob from 'glob'
 
-import Command from './src/_command'
-import { resolvePath } from './src/_utils'
+import { parseCommand, resolvePath } from '../src'
 
 let tmpDir = undefined
 let app = undefined
 
-const command = Command()
-const DEFAULT_SRC_DIR = resolvePath(__dirname, './src')
+const command = parseCommand()
+const DEFAULT_SRC_DIR = resolvePath(__dirname, '../src')
 if (!command.paths.src) {
   command.paths.src = DEFAULT_SRC_DIR
 } else if (command.paths.src !== DEFAULT_SRC_DIR) {
   tmpDir = resolvePath(__dirname, `./tmp/src-${Date.now()}-${process.pid}`)
   fse.copySync(DEFAULT_SRC_DIR, tmpDir)
   fse.copySync(command.paths.src, tmpDir)
-  src = tmpDir
+  command.paths.src = tmpDir
 }
 if (command.verbose) {
   console.log(`command:`, command)

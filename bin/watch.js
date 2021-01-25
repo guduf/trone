@@ -2,10 +2,9 @@ import { spawn } from 'child_process'
 import chokidar from 'chokidar'
 import { hideBin } from 'yargs/helpers'
 
-import Command from './src/_command'
-import { resolvePath, joinPath } from './src/_utils'
+import { resolvePath, joinPath, parseCommand } from '../src'
 
-let {paths: {src, lib, static: _static}} = Command()
+let {paths: {src, lib}} = parseCommand()
 
 const watched = []
 
@@ -17,10 +16,6 @@ if (src) {
 if (lib) {
   const libDir = resolvePath(process.cwd(), lib)
   watched.push(libDir)
-}
-
-if (_static) {
-  childArgs.push('--static', resolvePath(process.cwd(), _static))
 }
 
 if (!watched.length) {
@@ -39,7 +34,7 @@ const restartChildProcess = async () => {
     started = true
     childProcess = spawn(
       'node',
-      [joinPath(__dirname, './bin/trone'), ...hideBin(process.argv)],
+      [joinPath(__dirname, './trone'), ...hideBin(process.argv)],
       {stdio: ['ipc', 'inherit', 'inherit']}
     )
   } catch (err) {

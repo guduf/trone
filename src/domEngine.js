@@ -18,7 +18,7 @@ const DEFAULT_PAGE_DCL = {
   }
 }
 
-class DomEngine {
+export class DomEngine {
   constructor(ctx) {
     this._ctx = ctx
   }
@@ -135,7 +135,7 @@ new Vue({
   }
 }
 
-export default async app => {
+export const engineMiddleware = async app => {
   const domEngine = new DomEngine(app)
   await domEngine.init()
   app.get('/modules/?*', (req, res, next) => domEngine.renderScript(req, res, next))
@@ -154,3 +154,5 @@ export default async app => {
   })
   return domEngine
 }
+
+export default engineMiddleware

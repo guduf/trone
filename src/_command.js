@@ -3,7 +3,7 @@ import { hideBin } from 'yargs/helpers'
 
 import { isFile, isDirectory, resolvePath } from './_utils'
 
-export default () => {
+export const parseCommand = () => {
   const argv = yargs(hideBin(process.argv))
     .command('* [app] [...options]', 'Run trone application', yargs => (
       yargs.positional('app', {type: 'string', describe: 'Directory where to look for subdirectories and configuration\nDefault is current working directory'})
@@ -39,3 +39,5 @@ export default () => {
   const {verbose, watch} = argv
   return {paths: {config, src, lib, static: _static}, verbose, watch}
 }
+
+export default parseCommand

@@ -1,6 +1,4 @@
-import { command } from "yargs"
-
-class Logger {
+export class Logger {
   constructor({command}) {
     if (!command.verbose) {
       this.verbose = () => {}

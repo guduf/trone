@@ -6,7 +6,9 @@ const template = `
   </header>
 `
 
-export default {
+export const LayoutHeader = {
   template,
   props: ['title']
 }
+
+export default LayoutHeader

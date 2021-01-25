@@ -1,6 +1,6 @@
 import express from 'express'
 
-export default function createApp(ctx) {
+export const appBuilder = (ctx) => {
   const {httpPort} = ctx.conf
   if (!(httpPort > 0)) {
     throw new Error('missing httpPort')
@@ -36,3 +36,5 @@ export default function createApp(ctx) {
   })
   return app
 }
+
+export default appBuilder

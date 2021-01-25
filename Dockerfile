@@ -5,6 +5,8 @@ COPY ./package*.json ./
 ENV NODE_ENV production
 RUN npm install
 COPY ./ ./
-RUN chmod +x ./bin/*
+COPY ./package.json ./node_modules/trone/
+COPY ./src/ ./node_modules/trone/src/
+RUN chmod +x ./bin/trone
 ENV PATH="/opt/trone/bin:${PATH}"
 ENTRYPOINT [ "trone" ]

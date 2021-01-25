@@ -2,4 +2,4 @@
 .dockerignore
 node_modules
 Dockerfile
-watch.js
+*.report.*
