@@ -19,6 +19,7 @@ yargs(hideBin(process.argv))
   .option('lib', {alias: 'l', type: 'string', describe: 'Directory where to look for files like middlewares or pages'})
   .option('overSrc', {alias: ['src'], type: 'string', describe: 'Directory that will overwrite original source files'})
   .option('verbose', {alias: ['v'], type: 'boolean', describe: 'If true, logger will print all possible messages'})
+  .option('dryRun', {type: 'boolean', describe: 'Process will close just before it should start to listen'})
   .help('help')
   .alias('help', 'h')
   .argv

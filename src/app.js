@@ -20,6 +20,9 @@ export const appBuilder = (ctx) => {
       })
     }),
     stop: () => {
+      if (!server) {
+        return
+      }
       app.emit('appStop')
       ctx.log.info(`app stop on :${httpPort}`)
       return new Promise(resolve => {

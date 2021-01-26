@@ -20,8 +20,8 @@ export const parseCommand = argv => {
   if (_static != null && !_static && isDirectory(resolveAppPath('./static'))) {
     _static = resolvePath(appDir, './static')
   }
-  const {verbose, watch} = argv
-  return {paths: {conf: conf, src, lib, static: _static}, verbose, watch}
+  const {verbose, watch, dryRun} = argv
+  return {paths: {conf: conf, src, lib, static: _static}, verbose, watch, dryRun}
 }
 
 export default parseCommand

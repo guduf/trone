@@ -63,6 +63,11 @@ export function start(command) {
 
     await callSrc('post.mw', app)
 
+    if (command.dryRun) {
+      exit('DryRun')
+      return
+    }
+
     await app.start()
   }
 
