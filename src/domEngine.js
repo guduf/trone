@@ -4,6 +4,7 @@ import { createRenderer } from 'vue-server-renderer'
 import { join as joinPath } from 'path'
 import glob from 'glob'
 import deepmerge from 'deepmerge'
+import { promisify as p } from 'util'
 
 class DomEngine {
   constructor(ctx) {
@@ -11,10 +12,10 @@ class DomEngine {
     const layoutConf =  ctx.conf.layout || {}
     this._defaultPage = {
       template: `
-        <layout v-bind:layout="layout">
-          <h2 v-if="title">{{ title }}</h2>
-          <p v-if="text">{{ text }}</p>
-        </layout>
+      <layout v-bind:layout="layout">
+      <h2 v-if="title">{{ title }}</h2>
+      <p v-if="text">{{ text }}</p>
+      </layout>
       `,
       data: {
         layout: layoutConf,
@@ -32,10 +33,10 @@ class DomEngine {
     await this._loadDefaultComponents(joinPath(__dirname, './layout/index.template.html'))
     const {lib} = this._ctx.command.paths
     if (lib) for (const path of glob.sync(joinPath(lib, '/**/*.comp.js'))) {
-        const match = path.match(/\/([a-z][a-z0-9-]*)\.comp\.js$/)
-        if (match) {
-            this._globs[match[1]] = path
-        }
+      const match = path.match(/\/([a-z][a-z0-9-]*)\.comp\.js$/)
+      if (match) {
+        this._globs[match[1]] = path
+      }
     }
     this._renderer = createRenderer({
       template: await readFile(joinPath(__dirname, './layout/index.template.html'), 'utf-8')
@@ -59,8 +60,7 @@ class DomEngine {
     return `
 import Vue from '/esm/vue'
 ${comps.map(dcl => `
-Vue.component('${dcl.name}', ${JSON.stringify(dcl, null, 2)})`)}
-
+Vue.component('${dcl.name}', ${JSON.stringify(dcl, null, 2)})\n`)}
 new Vue({
   ...${JSON.stringify(root, null, 2)},
   el: 'body>*:first-child'
@@ -100,12 +100,15 @@ new Vue({
   async render(path = 'default', opts = {}) {
     let dcl
     if (path === 'default') {
-      dcl = deepmerge(this._defaultPage, opts.data ? {data: opts.data} : {})
+      dcl = this._defaultPage
     } else if (this._pages[path]) {
-       dcl = this._pages[path]
+      dcl = this._pages[path]
     } else if (this._globs[path]) {
-        this._ctx.log.verbose(`import component '${path}' (${this._globs[path]})`)
-        dcl = this._pages[path] = (await import(this._globs[path])).default
+      this._ctx.log.verbose(`import component '${path}' (${this._globs[path]})`)
+      dcl = this._pages[path] = (await import(this._globs[path])).default
+    }
+    if (opts.data) {
+      dcl = deepmerge(dcl, {data: opts.data})
     }
     this._ctx.log.verbose('render data:', dcl.data)
     const pageCtx = {

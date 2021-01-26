@@ -8,7 +8,11 @@ let {paths} = parseCommand()
 
 const watched = []
 
-for (const path of Object.keys(paths)) if (path) { watched.push(path) }
+for (const key of Object.keys(paths)) {
+  if (key !== 'static' && paths[key]) {
+    watched.push(paths[key])
+  }
+}
 
 if (!watched.length) {
   console.error('no directory to watch')
@@ -35,7 +39,7 @@ const restartChildProcess = async () => {
   scheduledRestart = null
 }
 
-chokidar.watch(watched).on('all', (event, path) => {
+chokidar.watch(watched, {usePolling: true}).on('all', (event, path) => {
   if (scheduledRestart) {
     return
   }
