@@ -24,9 +24,8 @@ jobs:
       install:
       - docker build . --tag guduf/trone:$NPM_VERSION || travis_terminate 1
       script:
-      - export CONTAINER_ID=$(docker run -d --entrypoint sh guduf/trone:$NPM_VERSION npm pack)
-      - if [ -z ${CONTAINER_ID} ]; then travis_terminate 1; fi
-      - docker cp $CONTAINER_ID:/opt/trone/trone-$NPM_VERSION.tgz ./ || travis_terminate 1
+      - docker run --name trone --entrypoint sh guduf/trone:$NPM_VERSION npm pack
+      - docker cp trone:/opt/trone/trone-$NPM_VERSION.tgz ./ || travis_terminate 1
       - git tag $NPM_VERSION || travis_terminate 1
       - npm publish ./trone-$NPM_VERSION.tgz
       - docker push guduf/trone:$NPM_VERSION
