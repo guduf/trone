@@ -1,6 +1,6 @@
 export * from './layout'
 
-export * from './_utils'
+export * from './_util'
 export * from './_command'
 export * from './app'
 export * from './conf'

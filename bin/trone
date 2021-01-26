@@ -1,5 +1,3 @@
 #!/usr/bin/env node
 require = require('esm')(module, {});
-(!process.connected && process.argv.find(arg => /^-([a-z]*w[a-z]*)|(-watch)$/.test(arg)))
-? require('./watch')
-: require('./start')
+require('./cli')
